@@ -12,6 +12,8 @@ import argparse
 import fitz
 # or should we import pymupdf
 
+import pypdf
+
 base_dir = Path(__file__).parent
 
 # for all datasets
@@ -85,7 +87,17 @@ def extract_all():
         char = infer_charachter(src.name)
         print(f"Extracting: {src.name} -> charachter {char}")
 
-        count = extract_cbz(src, char)
+        count = extract_cbz(src, char) if src.suffix.lower() == ".cbz" else extract_pdf(src, char)
+
+        print("page count: ", count)
+
+        total += count
+
+    print("total pages in image_dir: ", total)
+    for char in set(charachter_map.values()):
+        n = len(list(image_dir.glob(f"{char}_*.jpg")))
+        if n:
+            print(f"{char.capitalize():<12: {n} pages}")
 
 # can dpi be a hyperparameter? learnable? explore this..
 def extract_pdf(pdf_path, char, dpi = 150):
@@ -119,12 +131,40 @@ def extract_pdf(pdf_path, char, dpi = 150):
         # save it under this format
         pix.save(str(image_dir / f"{char}_page_{issue}_{i:04d}.jpg"))
 
+        saved += 1
+
     return saved
 
 
 # extract a pdf here. use the above function
-extract_pdf("The Amazing Spider-Man v03 (Pocket Book) (1979) (Edit Special) c2c.pdf", "s")
+# this function extracts a single pdf and stores it in the dataset folder
+# make sure you copy the relative path
+# we will do this inside the extract_all? or are we moving it?
+# extract_pdf(Path("The Amazing Spider-Man v03 (Pocket Book) (1979) (Edit Special) c2c.pdf"), "s")
+# extract_pdf(Path("/Users/charles/Desktop/comic-search-project/datasets/Ultimate Wolverine 016 (2026) (Digital) (Shan-Empire).pdf"), "s")
 
 
-def extract_cbz():
-    pass
+def extract_cbz(cbz_path, char):
+    issue = cbz_path.stem[:20].replace(" ", "_")
+
+    saved = 0
+
+    with zipfile.ZipFile(cbz_path, "r") as z:
+        imgs = sorted([f for f in z.namelist() if f.lower().endswith(('.jpg', '.jpeg', '.png')) and not f.startswith('__')])
+
+        total = len(imgs)
+
+        skip = set(range(3)) | set(range(total - 3, total))
+
+        for i, name in enumerate(imgs):
+            if i in skip:
+                continue
+
+            data = z.read(name)
+
+            (image_dir / f"{char}_page_{issue}_{i:04d}.jpg").write_bytes(data)
+
+            saved += 1
+
+    return saved
+
