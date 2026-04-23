@@ -7,6 +7,11 @@ from pathlib import Path
 import zipfile
 import argparse
 
+
+# might not work in python3 3.12.2
+import fitz
+# or should we import pymupdf
+
 base_dir = Path(__file__).parent
 
 # for all datasets
@@ -56,6 +61,8 @@ infer_charachter("The Amazing Spider-Man v03 (Pocket Book) (1979) (Edit Special)
 # spiderman should print out here
 # do we need pytest stuff here? maybe.. idk
 print(infer_charachter("The Amazing Spider-Man v03 (Pocket Book) (1979) (Edit Special) c2c.pdf"))
+print(infer_charachter("Ultimate Wolverine 016 (2026) (Digital) (Shan-Empire).pdf"))
+print(infer_charachter("Web of Venom 001 (2026) (Digital) (Shan-Empire).pdf"))
 
 
 # extract the downloadable format from getcomics.org
@@ -77,3 +84,47 @@ def extract_all():
         # the infer function
         char = infer_charachter(src.name)
         print(f"Extracting: {src.name} -> charachter {char}")
+
+        count = extract_cbz(src, char)
+
+# can dpi be a hyperparameter? learnable? explore this..
+def extract_pdf(pdf_path, char, dpi = 150):
+
+    # fitz is used to extract pages from a pdf
+    # based on the pymupdf library
+
+    # takes in strings of the pdf and saves it in the doc variable
+    doc = fitz.open(str(pdf_path))
+    print(doc)
+
+    # takes in the length of the strings of the doc for each pdf
+    total = len(doc)
+
+    # skip in 3 units or from a range thats less than 3
+    skip = set(range(3)) | set(range(total - 3, total))
+
+    issue = pdf_path.stem[:20].replace(" ", "_")
+
+    saved = 0
+
+    for i, page in enumerate(doc):
+        if i in skip:
+            continue
+        
+        # matrix
+        mat = fitz.Matrix(dpi / 72, dpi / 72)
+        # get the pixelmap here? print it out
+        pix = page.get_pixmap(matrix=mat)
+
+        # save it under this format
+        pix.save(str(image_dir / f"{char}_page_{issue}_{i:04d}.jpg"))
+
+    return saved
+
+
+# extract a pdf here. use the above function
+extract_pdf("The Amazing Spider-Man v03 (Pocket Book) (1979) (Edit Special) c2c.pdf", "s")
+
+
+def extract_cbz():
+    pass
