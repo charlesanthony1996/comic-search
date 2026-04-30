@@ -44,10 +44,22 @@ index_file = base_dir / "clip_index.npz"
 # has many unique keyword/names for the same characther?
 charachter_map = {
     "venom": "venom",
+
     "wolverine":  "wolverine",
+    "logan": "wolverine",
+
     # keywords for spiderman would be amazing, spectacular, spider
     "amazing": "spiderman",
-    "spider": "spiderman"
+    "spider": "spiderman",
+
+    "punisher": "punisher",
+    "frank": "punisher",
+    "castle": "punisher",
+
+    "matt": "daredevil",
+    "murdock": "daredevil",
+    "daredevil": "daredevil",
+    "devil": "daredevil"
 }
 
 # this is a basic function to infer.
@@ -89,8 +101,13 @@ def extract_all():
     # check for file formats that have .pdf or .cbz 
     sources = list(datasets.glob("*.pdf")) + list(datasets.glob("*.cbz"))
 
+    # eventhough we decided to go with .cbz format. we just might need pdfs still.
+    # so its just a fallback for now.
+    # might be able to take it off later
+    sources = list(datasets.rglob("*.cbz")) + list(datasets.rglob("*.pdf"))
+
     if not sources:
-        print("no endpoint found")
+        print("no files found in this format")
 
     # counter variable
     total = 0
