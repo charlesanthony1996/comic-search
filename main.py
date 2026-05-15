@@ -67,24 +67,37 @@ charachter_map = {
     "devil": "daredevil"
 }
 
+# function is deprecated now
+
 # this is a basic function to infer.
 # use bm25 for query search for the input
 # can we use this for title searching of a comic too? explorable
-def infer_charachter(filename):
-    # switch the names to lowercase so all special cases of the same name can be tracked
-    name = filename.lower()
-    # loop over through the items
-    for keyword, char in charachter_map.items():
-        # if the word is present the return the name of the superhero
-        if keyword in name:
-            return char
-    # returns the first based result / superhero. because its zero indexed
-    return Path(filename).stem.split("_")[0]
+# def infer_charachter(filename):
+#     # switch the names to lowercase so all special cases of the same name can be tracked
+#     name = filename.lower()
+#     # loop over through the items
+#     for keyword, char in charachter_map.items():
+#         # if the word is present the return the name of the superhero
+#         if keyword in name:
+#             return char
+#     # returns the first based result / superhero. because its zero indexed
+#     return Path(filename).stem.split("_")[0]
 
 
 def infer_charachter(filepath):
     # use the parent folder name if it matches a known charachter
     folder = Path(filepath).parent.name.lower()
+
+    if folder in set(charachter_map.values()):
+        return folder
+    
+    name = Path(filepath).name.lower()
+
+    for keyword, char in charachter_map.items():
+        if keyword in name:
+            return char
+        
+    return Path(filepath).stem.split("_")[0]
 
     
 
@@ -538,6 +551,11 @@ extract_all()
 
 build_index()
 
-run_search("frank castle fighting with matt murdock", top_k=5, show=True)
+# run_search("one batch two batch, penny and dime. here i come. here i come", top_k=5, show=True)
+# run_search("the punisher thinking about his family and feeling sad", top_k=5, show=True)
+# run_search("microchip working on computers or hacking", top_k=5, show=True)
+# run_search("punisher and daredevil fighting", top_k=5, show=True)
+run_search("punisher fighting with wilson fisk", top_k= 5, show=True)
+
 
 evaluate()
