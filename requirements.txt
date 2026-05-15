@@ -1,2 +1,10 @@
 torch
 numpy
+pytesseract
+# zipfile
+# argparse
+# fitz
+# pypdf
+open_clip
+matplotlib
+rank-bm25

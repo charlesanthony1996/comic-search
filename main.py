@@ -77,6 +77,13 @@ def infer_charachter(filename):
     return Path(filename).stem.split("_")[0]
 
 
+def infer_charachter(filepath):
+    # use the parent folder name if it matches a known charachter
+    folder = Path(filepath).parent.name.lower()
+
+    
+
+
 # for the time being the mini script would be function based
 # class based would be the final outcome.
 
@@ -467,6 +474,6 @@ extract_all()
 
 build_index()
 
-run_search("black symbiote with teeth", top_k=3, show=True)
+run_search("frank castle fighting with matt murdock", top_k=5, show=True)
 
 evaluate()
