@@ -473,25 +473,33 @@ def build_text_corpus():
         
         return corpus
 
-
-
-
-
-    
-
-
-
-
-
-
-
 # bm25 search function
 
 # tokenize the query, 
 # score against the ocr text corpus
 # return top_k filenames + scores 
-def bm25_search():
-    pass
+def bm25_search(query, top_k = 5):
+    
+    corpus_path = base_dir / "dataset_text.json"
+
+    if not corpus_path.exists():
+        print("run the build function again please, get the json file ready")
+        return []
+    
+    with open(corpus_path) as f:
+        corpus = json.load(f)
+
+    filenames = list(corpus.keys())
+
+    tokenized = [doc.split() for doc in corpus.values()]
+
+    bm25 = BM250kapi(tokenized)
+
+    scores = bm25.get_scores(query.lower().split())
+
+    top_idx = np.argsort(scores)[::-1][:top_k]
+
+    return [(scores[i], filenames[i]) for i in top_idx]
  
 
 # better to have a zsh here to double click and run once
