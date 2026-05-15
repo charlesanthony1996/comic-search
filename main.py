@@ -27,6 +27,11 @@ import matplotlib.pyplot as plt
 # write the os indenpendent switch here to run locally
 # not implemented yet
 
+# for ocr extraction
+import pytesseract
+
+from rank_bm25 import BM250kapi
+
 
 base_dir = Path(__file__).parent
 
@@ -450,7 +455,28 @@ def build_text_corpus():
     corpus = {}
 
     for i, path in enumerate(paths):
+
+        # converting each image to rgb
+        img = Image.open(path).convert("RGB")
+
+        text = pytesseract.image_to_string(img).lower().strip()
+
+        corpus[path.name] = text
+
+        if (i + 1) % 20 == 0:
+            print(f"ocr {i+1}/{len(paths)}")
+
+        with open(base_dir / "dataset_text.json", "w") as f:
+            json.dump(corpus, f, indent=2)
+
+        print(f"ocr done {len(corpus)} pages indexed")
         
+        return corpus
+
+
+
+
+
     
 
 
