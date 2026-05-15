@@ -436,6 +436,36 @@ def evaluate():
             print(f"       {rank}. [{scores[i]:.4f}] {filenames[i]}{marker}")
  
     print(f"\result: {hits}/{len(golden_test_set)} queries hit in top-3")
+
+
+# text corpus function
+
+# perform ocr on each page
+# and save the text alongside the image
+def build_text_corpus():
+
+    # remember that in the dataset folder each file is a jpg
+    paths = sorted(image_dir.glob("*.jpg"))
+    
+    corpus = {}
+
+    for i, path in enumerate(paths):
+        
+    
+
+
+
+
+
+
+
+# bm25 search function
+
+# tokenize the query, 
+# score against the ocr text corpus
+# return top_k filenames + scores 
+def bm25_search():
+    pass
  
 
 # better to have a zsh here to double click and run once
