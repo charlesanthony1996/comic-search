@@ -30,7 +30,7 @@ import matplotlib.pyplot as plt
 # for ocr extraction
 import pytesseract
 
-from rank_bm25 import BM250kapi
+from rank_bm25 import BM25Okapi
 
 
 base_dir = Path(__file__).parent
@@ -466,12 +466,12 @@ def build_text_corpus():
         if (i + 1) % 20 == 0:
             print(f"ocr {i+1}/{len(paths)}")
 
-        with open(base_dir / "dataset_text.json", "w") as f:
-            json.dump(corpus, f, indent=2)
+    with open(base_dir / "dataset_text.json", "w") as f:
+        json.dump(corpus, f, indent=2)
 
-        print(f"ocr done {len(corpus)} pages indexed")
+    print(f"ocr done {len(corpus)} pages indexed")
         
-        return corpus
+    return corpus
 
 # bm25 search function
 
@@ -493,7 +493,7 @@ def bm25_search(query, top_k = 5):
 
     tokenized = [doc.split() for doc in corpus.values()]
 
-    bm25 = BM250kapi(tokenized)
+    bm25 = BM25Okapi(tokenized)
 
     scores = bm25.get_scores(query.lower().split())
 
