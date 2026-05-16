@@ -140,8 +140,8 @@ def extract_all():
     for src in sources:
         # earlier we used the superhero name directly but here we take the entire filename and use it inside
         # the infer function
-        char = infer_charachter(src.name)
-        print(f"Extracting: {src.name} -> charachter {char}")
+        char = infer_charachter(src)
+        print(f"Extracting: {src} -> charachter {char}")
 
         count = extract_cbz(src, char) if src.suffix.lower() == ".cbz" else extract_pdf(src, char)
 
@@ -551,11 +551,26 @@ extract_all()
 
 build_index()
 
+build_text_corpus()
+
 # run_search("one batch two batch, penny and dime. here i come. here i come", top_k=5, show=True)
 # run_search("the punisher thinking about his family and feeling sad", top_k=5, show=True)
 # run_search("microchip working on computers or hacking", top_k=5, show=True)
 # run_search("punisher and daredevil fighting", top_k=5, show=True)
 run_search("punisher fighting with wilson fisk", top_k= 5, show=True)
 
+# using bm25 only
+results = bm25_search("punisher fighting with wilson fisk", top_k=5)
+print(results)
 
-evaluate()
+# see the difference between them
+query = "punisher fighting with daredevil"
+
+run_search(query, top_k=5, show=False)
+
+for score, fname in bm25_search(query, top_k=5):
+    print(f"{score:.4f} {fname}")
+
+
+
+# evaluate()
