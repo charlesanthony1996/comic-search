@@ -463,10 +463,15 @@ def evaluate():
 def build_text_corpus():
 
     # remember that in the dataset folder each file is a jpg
+    # "glob" all extracted pages from the dataset folder
+    # remember this folder is created when the program is first run
     paths = sorted(image_dir.glob("*.jpg"))
     
+    # is a dict mapping filename to the extracted text
+    # this gets saved as a dataset_text.json in the end
     corpus = {}
 
+    # 
     for i, path in enumerate(paths):
 
         # converting each image to rgb
