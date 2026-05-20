@@ -10,10 +10,10 @@ A hybrid comic search system that enables semantic and text-based retrieval from
 
 ## Features
 
-- Extract pages from comic archives (`.cbz` preferred, `.pdf` supported)
-- Automatic superhero/character inference from filenames and folder structure
+- Extract pages from comic archives (`.cbz` preferred, `.pdf` supported as fallback)
+- Automatic superhero/character inference from filenames and parent folder structure
 - OCR text extraction using Tesseract
-- Semantic image-text retrieval using OpenCLIP (CLIP)
+- Semantic image-text retrieval using OpenCLIP (ViT-B/32)
 - BM25 keyword search over extracted OCR text
 - Golden test set evaluation with Top-3 hit checking
 - Visual display of ranked search results via Matplotlib
@@ -27,7 +27,7 @@ Comic Files (.cbz / .pdf)
         ↓
   Page Extraction
         ↓
- Image Dataset Generation
+ Image Dataset Generation  (dataset/)
         ↓
   OCR Text Extraction
         ↓
@@ -51,11 +51,11 @@ CLIP Embedding Generation
 ```
 comic-search/
 │
-├── datasets/              # Input comic datasets (.cbz / .pdf)
-├── dataset/               # Extracted page images
-├── dataset_text.json      # OCR text corpus
-├── clip_index.npz         # Generated CLIP embedding index
-├── main.py                # Main entry point
+├── datasets/              # Input comic datasets (.cbz / .pdf) — git ignored
+├── dataset/               # Extracted page images — git ignored
+├── dataset_text.json      # OCR text corpus (generated)
+├── clip_index.npz         # CLIP embedding index (generated) — git ignored
+├── main.py                # Main script (all logic lives here)
 ├── requirements.txt       # Python dependencies
 ├── .gitignore
 └── README.md
@@ -89,74 +89,101 @@ pip install -r requirements.txt
 ## Requirements
 
 ```
-torch>=2.0
-numpy>=1.26
-pytesseract>=0.3.10
-PyMuPDF>=1.25
-pypdf>=5.0
-open-clip-torch>=2.24
-Pillow>=10.0
-matplotlib>=3.8
-rank-bm25>=0.2
+torch
+numpy
+pytesseract
+open_clip
+matplotlib
+rank-bm25
 ```
+
+> **Note:** `fitz` and `pypdf` are imported in the code but currently commented out in `requirements.txt`.
+> Install `PyMuPDF` (which provides `fitz`) if you plan to use PDF extraction:
+> ```
+> pip install PyMuPDF
+> ```
 
 ---
 
 ## Usage
 
-### Extract comic pages
+> **Note:** The CLI argument parser (`argparse`) is currently commented out in `main.py`.
+> To run the project, call the functions directly in `main.py` or uncomment the CLI block at the bottom.
 
-```bash
-python main.py --extract
+### Step 1 — Extract comic pages
+
+```python
+extract_all()
 ```
 
-Extracts pages from `.cbz` and `.pdf` files in the `datasets/` folder into the `dataset/` directory. `.cbz` format is preferred; `.pdf` is supported as a fallback.
+Scans `datasets/` for `.cbz` and `.pdf` files, extracts pages as `.jpg` images into `dataset/`.
+- `.cbz` is the preferred format
+- `.pdf` is supported as a fallback via PyMuPDF (`fitz`)
+- First and last 3 pages are skipped (covers/credits)
 
-### Build CLIP image index
+### Step 2 — Build CLIP image index
 
-```bash
-python main.py --index
+```python
+build_index()
 ```
 
-Generates CLIP embedding vectors for all extracted pages and saves them to `clip_index.npz`.
+Generates CLIP (ViT-B/32) embedding vectors for all images in `dataset/` and saves them to `clip_index.npz`.
 
-### Run semantic search
+### Step 3 — Run semantic search
 
-```bash
-python main.py --search "punisher fighting with wilson fisk" --show
+```python
+run_search("punisher fighting with wilson fisk", top_k=5, show=True)
 ```
 
-The `--show` flag displays the top results visually using Matplotlib.
+The `show=True` flag displays ranked results as images using Matplotlib.
 
-**Example queries:**
+**Example queries from the code:**
 
-```bash
-python main.py --search "spider-man swinging"
-python main.py --search "punisher fighting with daredevil"
-python main.py --search "black symbiote monster"
+```python
+run_search("punisher fighting with wilson fisk", top_k=5, show=True)
+run_search("punisher and daredevil fighting", top_k=5, show=False)
+run_search("the punisher thinking about his family and feeling sad", top_k=5, show=True)
+run_search("microchip working on computers or hacking", top_k=5, show=True)
 ```
 
-### BM25 text search (OCR-based)
-
-Build the OCR text corpus:
+### Step 4 — Build OCR text corpus
 
 ```python
 build_text_corpus()
 ```
 
-Run a BM25 keyword search:
+Runs Tesseract OCR on every image in `dataset/` and saves extracted text to `dataset_text.json`.
+
+### Step 5 — BM25 keyword search
 
 ```python
-bm25_search("punisher fighting with wilson fisk")
+results = bm25_search("punisher fighting with wilson fisk", top_k=5)
+print(results)
 ```
 
-### Run evaluation
+Returns a list of `(score, filename)` tuples ranked by BM25 relevance over the OCR corpus.
 
-```bash
-python main.py --eval
+### Step 6 — Run evaluation
+
+```python
+evaluate()
 ```
 
-Evaluates retrieval quality against the golden test set using Top-3 hit checking and character-based relevance validation.
+Runs the golden test set against the CLIP index. Reports Top-3 hit/miss for each query and prints a final score.
+
+---
+
+## Character Map
+
+The project uses a keyword-based character map to infer superhero identity from filenames and folder names:
+
+| Keyword | Character |
+|---|---|
+| `venom` | venom |
+| `wolverine`, `logan` | wolverine |
+| `amazing`, `spider` | spiderman |
+| `punisher`, `frank`, `castle` | punisher |
+| `matt`, `murdock`, `daredevil`, `devil` | daredevil |
 
 ---
 
@@ -165,48 +192,62 @@ Evaluates retrieval quality against the golden test set using Top-3 hit checking
 | Technology | Purpose |
 |---|---|
 | Python | Core language |
-| OpenCLIP | Semantic image-text embeddings |
+| OpenCLIP (ViT-B/32) | Semantic image-text embeddings |
 | Tesseract OCR | Text extraction from comic pages |
-| BM25 (rank-bm25) | Keyword-based text retrieval |
-| PyMuPDF | PDF page extraction |
-| NumPy | Embedding storage and similarity |
+| BM25 (`rank-bm25`) | Keyword-based text retrieval |
+| PyMuPDF (`fitz`) | PDF page extraction |
+| `zipfile` (stdlib) | `.cbz` archive extraction |
+| NumPy | Embedding storage and cosine similarity |
 | Matplotlib | Visual display of search results |
-| Pillow | Image processing |
+| Pillow | Image loading and preprocessing |
 
 ---
 
 ## Evaluation
 
-The project includes a golden test set for retrieval quality measurement.
+The project includes a hardcoded golden test set covering 7 queries across 3 characters:
 
-Current evaluation metrics:
-- **Top-3 hit rate** — checks if the correct page appears in the top 3 results
-- **Character-based relevance** — validates results based on superhero/character identity inferred from filenames
+| Character | Queries |
+|---|---|
+| Spider-Man | 2 |
+| Venom | 2 |
+| Wolverine | 3 |
+
+Punisher and Daredevil mixed-appearance queries are noted as a TODO in the code. Each query is evaluated for a Top-3 hit — whether the expected character appears in any of the top 3 retrieved filenames.
 
 ---
 
-## Notes
+## Known Limitations
 
-Large datasets and generated index files are excluded via `.gitignore` to keep the repository lightweight:
+- The CLI (`argparse`) block is currently commented out — functions must be called directly in `main.py`
+- Character inference falls back to `None` if the folder name is unrecognized and no keyword matches the filename (visible in `dataset_text.json` as `None_page_...`)
+- `pypdf` is imported but commented out in `requirements.txt`
+- The Dockerfile is currently empty
+
+---
+
+## Notes — Git Ignored Files
+
+These files are excluded via `.gitignore` and must be generated locally:
 
 ```
-datasets/
-dataset/
-clip_index.npz
+datasets/       # place your .cbz / .pdf comics here
+dataset/        # auto-generated by extract_all()
+clip_index.npz  # auto-generated by build_index()
 .env
 ```
-
-These files must be generated locally after cloning using the `--extract` and `--index` commands.
 
 ---
 
 ## Future Improvements
 
+- Re-enable and finalize the CLI (`argparse`) interface
+- Fix `None_` prefix in character inference for unrecognized folders
 - Hybrid score fusion between CLIP + BM25 results
 - FAISS vector indexing for faster retrieval at scale
 - Web UI for interactive search
 - Improved OCR preprocessing (denoising, deskewing)
-- Multimodal query support (image + text)
+- Complete the Dockerfile for containerized deployment
 
 ---
 
