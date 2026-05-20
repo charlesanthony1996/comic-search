@@ -475,20 +475,35 @@ def build_text_corpus():
     for i, path in enumerate(paths):
 
         # converting each image to rgb
+        # first opens rgb
+        # then handles any rgba or grayscale pages safely
         img = Image.open(path).convert("RGB")
 
+        # run ocr on this page
+        # extracts all text from all speech bubbles and from text below each
+        # comic panel
         text = pytesseract.image_to_string(img).lower().strip()
 
+        # stores the extracted text keyed by filename (important)
+        # this filename is used to lookup which page a bm25 hit corresponds to
         corpus[path.name] = text
 
+        # progress update every 20 pages
+        # this might not be necessary in the future
+        # ocr is very slow
+        # current time on my m3 pro is ~ 10 to 20 minutes
+        # cluster time should be faster
+        # prepare the dockerfile for this
         if (i + 1) % 20 == 0:
             print(f"ocr {i+1}/{len(paths)}")
 
+    # save the full corpus to a json
     with open(base_dir / "dataset_text.json", "w") as f:
         json.dump(corpus, f, indent=2)
 
-    print(f"ocr done {len(corpus)} pages indexed")
-        
+    # print(f"ocr done {len(corpus)} pages indexed")
+
+    # return the corpus produced
     return corpus
 
 # bm25 search function
