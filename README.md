@@ -129,39 +129,30 @@ build_index()
 
 Generates CLIP (ViT-B/32) embedding vectors for all images in `dataset/` and saves them to `clip_index.npz`.
 
-### Step 3 — Run semantic search
-
-```python
-run_search("punisher fighting with wilson fisk", top_k=5, show=True)
-```
-
-The `show=True` flag displays ranked results as images using Matplotlib.
-
-**Example queries from the code:**
-
-```python
-run_search("punisher fighting with wilson fisk", top_k=5, show=True)
-run_search("punisher and daredevil fighting", top_k=5, show=False)
-run_search("the punisher thinking about his family and feeling sad", top_k=5, show=True)
-run_search("microchip working on computers or hacking", top_k=5, show=True)
-```
-
-### Step 4 — Build OCR text corpus
+### Step 3 — Build OCR text corpus
 
 ```python
 build_text_corpus()
 ```
 
-Runs Tesseract OCR on every image in `dataset/` and saves extracted text to `dataset_text.json`.
+Runs Tesseract OCR on every image in `dataset/` and saves extracted text to `dataset_text.json`. This is required before running BM25 search.
 
-### Step 5 — BM25 keyword search
+### Step 4 — Run semantic search (CLIP)
+
+```python
+run_search("punisher fighting with wilson fisk", top_k=5, show=True)
+```
+
+Encodes the text query using CLIP and returns the top-k most visually similar comic pages by cosine similarity. The `show=True` flag displays ranked results as images using Matplotlib.
+
+### Step 5 — BM25 keyword search (OCR-based)
 
 ```python
 results = bm25_search("punisher fighting with wilson fisk", top_k=5)
 print(results)
 ```
 
-Returns a list of `(score, filename)` tuples ranked by BM25 relevance over the OCR corpus.
+Returns a list of `(score, filename)` tuples ranked by BM25 relevance over the OCR text corpus. Requires `dataset_text.json` to exist (run Step 3 first).
 
 ### Step 6 — Run evaluation
 
@@ -223,6 +214,7 @@ Punisher and Daredevil mixed-appearance queries are noted as a TODO in the code.
 - Character inference falls back to `None` if the folder name is unrecognized and no keyword matches the filename (visible in `dataset_text.json` as `None_page_...`)
 - `pypdf` is imported but commented out in `requirements.txt`
 - The Dockerfile is currently empty
+- `subprocess` is imported but not used anywhere in the current code
 
 ---
 
