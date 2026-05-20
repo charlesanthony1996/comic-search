@@ -33,6 +33,8 @@ import pytesseract
 from rank_bm25 import BM25Okapi
 
 
+
+
 base_dir = Path(__file__).parent
 
 # for all datasets
@@ -402,6 +404,8 @@ def run_search(query, top_k=5, show=False):
 # the golden set that test for unique cases and also checks robustness
 # seperated per superhero?
 # what if two appear in the same setting? how to find that? should train on relevant comics
+
+# 
 golden_test_set = [
     # spiderman
     {"query": "Spider-Man in red and blue suit swinging","expected": "spiderman"},
@@ -419,6 +423,15 @@ golden_test_set = [
     # mixed appearances? need a listof comics that only share these charachters
     # or with new ones we have never trained on before?
     # how can this be a golden set query? something here
+
+    # daredevil
+    {"query": "daredevil fighting with wilson fisk", "expected": "daredevil" },
+    # {"query": "", "expected": ""}
+
+    # punisher
+    {"query": "punisher fighting with bad guys", "expected": "punisher"},
+    {"query": "", "expected": ""}
+
 ]
  
 def evaluate():
@@ -513,27 +526,107 @@ def build_text_corpus():
 # return top_k filenames + scores 
 def bm25_search(query, top_k = 5):
     
+    # remember dataset_text.json was created by build_text_corpus()
+    # it maps the filename -> ocr extracted text for every page
     corpus_path = base_dir / "dataset_text.json"
 
+    # if there is no ocr json file prepared.. exit this function
     if not corpus_path.exists():
         print("run the build function again please, get the json file ready")
         return []
     
+    # load the generated full ocr corpus
     with open(corpus_path) as f:
         corpus = json.load(f)
 
+    # seperate keys and values so we can map result indices back to filenames
+    # filenames[i] corresponds to tokenized[i]
     filenames = list(corpus.keys())
 
+    # tokenize each document by splitting whitespace
+    # so here its saved as a list of token lists, not raw lists
     tokenized = [doc.split() for doc in corpus.values()]
 
+    # build the bm25 index over the tokenized corpus
+    # bm25kapi is the okapi bm25 variant - the industry standard
+    # 
     bm25 = BM25Okapi(tokenized)
 
+    # score every document against the query
+    # query is lowercased to match the corpus ()
+    # 
     scores = bm25.get_scores(query.lower().split())
 
+    # argsort gives ascending order -> [::-1]
+    # [:top_k] takes only the top results
     top_idx = np.argsort(scores)[::-1][:top_k]
 
+    # return (score, filename) pairs so the caller knows both
     return [(scores[i], filenames[i]) for i in top_idx]
  
+
+
+def rrf_search(query, top_k=5, k = 60):
+    
+    # get all results from both retrievers
+    clip_results = run_search(query, top_k=100, show=False)
+    bm25_results = bm25_search(query, top_k=100)
+    bm25_fnames = [fname for _, fname in bm25_results]
+
+    # compute rrf score for each filename
+    rrf = {}
+    for rank, fname in enumerate(clip_results, 1):
+        rrf[fname] = rrf.get(fname, 0) + 1 / (k + rank)
+    for rank, fname in enumerate(bm25_fnames, 1):
+        rrf[fname] = rrf.get(fname, 0) + 1 / (k + rank)
+
+    ranked = sorted(rrf.items(), key=lambda x: x[1])
+    return [fname for fname, _ in ranked[:top_k]]
+
+
+# implementing the four metrics the professor wrote on the whiteboard
+
+# - precision@k
+# - MAP - mean average precision
+# - MRR - mean reciprocal rank
+# - NDCG@k - normalized discounted cumulative gain
+
+# retrieval evaluation metrics
+
+
+# precision@k
+def precision_at_k(retrieved: list[str], expected_char: str, k: int) -> float:
+    
+    # precision@k = (number of relevant results in top-k) / k
+    # range is from 0 to 1
+
+    # being relevant means the expected charachter name should appear in the filename
+    # otherwise its not relevant
+    top_k = retrieved[:k]
+    relevant = sum(1 for fname in top_k if expected_char in fname)
+    return relevant / k
+
+# reciprocal rank
+def reciprocal_rank():
+    pass
+
+
+# average precision
+def average_precision():
+    pass
+
+# dcg at k
+def dcg_at_k():
+    pass
+
+
+# ndcg at k
+def ndcg_at_k():
+    pass
+
+
+
+
 
 # better to have a zsh here to double click and run once
 # make it for windows
