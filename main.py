@@ -399,6 +399,8 @@ def run_search(query, top_k=5, show=False):
         plt.suptitle(f'"{query}"', fontsize=10)
         plt.tight_layout()
         plt.show()
+    
+    return [filenames[i] for i in top_idx]
  
 
 # the golden set that test for unique cases and also checks robustness
