@@ -640,8 +640,16 @@ def average_precision(retrieved: list[str], expected_char: str) -> float:
     return sum_precision / hits
 
 # dcg at k
-def dcg_at_k():
-    pass
+def dcg_at_k(retrieved: list[str], expected_char: str, k: int) -> float:
+    
+    # discount cumulative gain
+    dcg = 0.0
+
+    for rank, fname in enumerate(retrieved[:k], 1):
+        if expected_char in fname:
+            dcg += 1.0 / np.log2(rank + 1)
+
+    return dcg
 
 
 # ndcg at k
