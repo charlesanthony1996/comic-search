@@ -607,13 +607,37 @@ def precision_at_k(retrieved: list[str], expected_char: str, k: int) -> float:
     return relevant / k
 
 # reciprocal rank
-def reciprocal_rank():
-    pass
+def reciprocal_rank(retrieved: list[str], expected_char: str) -> float:
+    # reciprocal rank = 1 / rank of first relevant result
+
+    # if the first correct result is at rank 1 -> 1.0
+    # if its in the third rank -> 0.33
+    # if no result is found -> 0.0
+    
+    for rank, fname in enumerate(retrieved, 1):
+        if expected_char in fname:
+            return 1.0 / rank
+    return 0.0
+
 
 
 # average precision
-def average_precision():
-    pass
+def average_precision(retrieved: list[str], expected_char: str) -> float:
+
+    # average precision = average precision@k at each rank where a relevant result appears
+
+    hits = 0
+    sum_precision = 0.0
+
+    for rank, fname in enumerate(retrieved, 1):
+        if expected_char in fname:
+            hits += 1
+            sum_precision += hits / rank
+
+    if hits == 0:
+        return 0.0
+    
+    return sum_precision / hits
 
 # dcg at k
 def dcg_at_k():
