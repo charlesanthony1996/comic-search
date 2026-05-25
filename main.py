@@ -739,6 +739,19 @@ def evaluate_all(search_fn, k: int = 5, mode: str="unknown") -> dict:
     # _print_summary(results)
     return results
 
+def compare(results_a: dict, results_b: dict):
+
+    a, b = results_a, results_b
+
+    for metric in ['precision', 'mrr', 'map', 'ndcg']:
+        label = metric.upper() if metric != "precision" else f"precision@{a['k']}"
+        va, vb = a[metric], b[metric]
+        delta = vb - va
+        arrow = "↑" if delta > 0 else ("↓" if delta < 0 else "=")
+        print(f"{label:<20} {va:>10.4f} {vb:>10.4f} {arrow} {abs(delta):.4f}")
+
+    
+
 
         
 
