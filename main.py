@@ -32,6 +32,8 @@ import pytesseract
 
 from rank_bm25 import BM25Okapi
 
+# we need this if we move the evaluation functions to another file
+# from evaluate import evaluate_all, compare
 
 
 
