@@ -653,8 +653,24 @@ def dcg_at_k(retrieved: list[str], expected_char: str, k: int) -> float:
 
 
 # ndcg at k
-def ndcg_at_k():
-    pass
+def ndcg_at_k(retrieved: list[str], expected_char: str, k: int) -> float:
+
+    # normalized discounted cumulative gain
+    actual_dcg = dcg_at_k(retrieved, expected_char, k)
+
+    num_relevant = sum(1 for fname in retrieved if expected_char in fname)
+    num_relevant = min(num_relevant, k)
+
+    if num_relevant == 0:
+        return 0.0
+    
+    ideal_dcg = sum(1.0 / np.log2(rank + 1) for rank in range(1, num_relevant + 1))
+
+    if ideal_dcg == 0:
+        return 0.0
+    
+    return actual_dcg / ideal_dcg
+
 
 
 
