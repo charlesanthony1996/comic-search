@@ -672,8 +672,80 @@ def ndcg_at_k(retrieved: list[str], expected_char: str, k: int) -> float:
     return actual_dcg / ideal_dcg
 
 
+def evaluate_all(search_fn, k: int = 5, mode: str="unknown") -> dict:
 
 
+    per_query = []
+
+    all_precision = []
+    all_rr = []
+    all_ap = []
+    all_ndcg = []
+
+    for item in golden_test_set:
+        query = item["query"]
+        expected = item["expected"]
+
+        raw = search_fn(query, top_k = k * 2)
+
+        if raw and isinstance(raw[0], tuple):
+            filenames = [fname for _, fname in raw]
+
+        else:
+            filenames = list(raw) if raw else []
+
+    
+        # compute metrics
+        p_at_k = precision_at_k(filenames, expected, k)
+        rr = reciprocal_rank(filenames, expected)
+        ap = average_precision(filenames, expected)
+        nd = ndcg_at_k(filenames, expected, k)
+
+        all_precision.append(p_at_k)
+        all_rr.append(rr)
+        all_ap.append(ap)
+        all_ndcg.append(nd)
+
+        hit = rr > 0
+        status = "hit" if hit else "miss"
+
+        per_query.append({
+            "query": query,
+            "expected": expected,
+            "hit": hit,
+            "precision": p_at_k,
+            "rr": rr,
+            "ap": ap,
+            "ndcg": nd,
+            "top_results": filenames[:k]
+        })
+
+    results = {
+        "mode": mode,
+        "k": k,
+        "per_query": per_query,
+        "precision": float(np.mean(all_precision)),
+        "mrr": float(np.mean(all_rr)),
+        "map": float(np.mean(all_ap)),
+        "ndcg": float(np.mean(all_ndcg)),
+        "hits": sum(1 for q in per_query if q["hit"]),
+        "total": len(golden_test_set)
+    }
+
+    # _print_summary(results)
+    return results
+
+
+        
+
+
+def _print_summary(r: dict):
+    print("hits: ", r['hits']/r['total'])
+    print("precision @k",r['precision'])
+    print("mrr: ", r['mrr'])
+    print("map: ", r['map'])
+    print("ndcg: ", r['ndcg'])
+    # pass
 
 
 # better to have a zsh here to double click and run once
