@@ -830,3 +830,39 @@ bm25_results = evaluate_all(run_search, k = 5, mode="bm25")
 rrf_results = evaluate_all(run_search, k = 5, mode="rrf")
 
 compare(clip_results, rrf_results)
+
+def plot_comparison(clip_r, bm25_r, rrf_f):
+
+    metrics = ["precision", "mrr", "map", "ndcg"]
+
+    labels = ["clip", "bm25", "rrf"]
+
+    values = [
+        [clip_r[m] for m in metrics],
+        [bm25_r[m] for m in metrics],
+        [rrf_f[m] for m in metrics]
+    ]
+
+    x = np.arange(len(metrics))
+
+    w = 0.25
+
+    fig, ax = plt.subplots(figsize=(10, 5))
+
+    for i, (label, vals) in enumerate(zip(labels, values)):
+        ax.bar(x + i*w, vals, w, label = label)
+    
+    ax.set_xticks(x + w)
+    ax.set_xticklabels(["Precision@5", "mrr", "map", "ndcg@5"])
+
+    ax.set_ylim(0, 1)
+
+    ax.legend()
+
+    ax.set_title("Retrieval method comparison")
+
+    plt.tight_layout()
+
+    plt.savefig("metrics_comparison.png")
+
+    plt.show()
