@@ -10,3 +10,7 @@
 # dont push the numpy indexed cached array
 ./clip_index.npz
 clip_index.npz
+
+datasets.zip
+.datasets.zip
+/datasets.zip
