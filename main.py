@@ -799,9 +799,9 @@ def _print_summary(r: dict):
 
 extract_all()
 
-build_index()
+# build_index()
 
-build_text_corpus()
+# build_text_corpus()
 
 # run_search("one batch two batch, penny and dime. here i come. here i come", top_k=5, show=True)
 # run_search("the punisher thinking about his family and feeling sad", top_k=5, show=True)
@@ -810,17 +810,23 @@ build_text_corpus()
 run_search("punisher fighting with wilson fisk", top_k= 5, show=True)
 
 # using bm25 only
-results = bm25_search("punisher fighting with wilson fisk", top_k=5)
-print(results)
+# results = bm25_search("punisher fighting with wilson fisk", top_k=5)
+# print(results)
 
 # see the difference between them
-query = "punisher fighting with daredevil"
+# query = "punisher fighting with daredevil"
 
-run_search(query, top_k=5, show=False)
+# run_search(query, top_k=5, show=False)
 
-for score, fname in bm25_search(query, top_k=5):
-    print(f"{score:.4f} {fname}")
+# for score, fname in bm25_search(query, top_k=5):
+    # print(f"{score:.4f} {fname}")
 
 
 
 # evaluate()
+
+clip_results = evaluate_all(run_search, k = 5, mode="clip")
+bm25_results = evaluate_all(run_search, k = 5, mode="bm25")
+rrf_results = evaluate_all(run_search, k = 5, mode="rrf")
+
+compare(clip_results, rrf_results)
