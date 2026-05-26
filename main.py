@@ -826,8 +826,8 @@ run_search("punisher fighting with wilson fisk", top_k= 5, show=True)
 # evaluate()
 
 clip_results = evaluate_all(run_search, k = 5, mode="clip")
-bm25_results = evaluate_all(run_search, k = 5, mode="bm25")
-rrf_results = evaluate_all(run_search, k = 5, mode="rrf")
+bm25_results = evaluate_all(bm25_search, k = 5, mode="bm25")
+rrf_results = evaluate_all(rrf_search, k = 5, mode="rrf")
 
 compare(clip_results, rrf_results)
 
@@ -866,3 +866,6 @@ def plot_comparison(clip_r, bm25_r, rrf_f):
     plt.savefig("metrics_comparison.png")
 
     plt.show()
+
+# generate plot to see the metrics comparison
+plot_comparison(clip_results, bm25_results, rrf_results)
