@@ -584,7 +584,7 @@ def rrf_search(query, top_k=5, k = 60):
     for rank, fname in enumerate(bm25_fnames, 1):
         rrf[fname] = rrf.get(fname, 0) + 1 / (k + rank)
 
-    ranked = sorted(rrf.items(), key=lambda x: x[1])
+    ranked = sorted(rrf.items(), key=lambda x: -x[1])
     return [fname for fname, _ in ranked[:top_k]]
 
 
