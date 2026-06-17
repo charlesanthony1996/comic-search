@@ -151,5 +151,90 @@ golden_set = [
 ]
 
 
+# evaluating_model function
+# running the golden set here and returning the metrics
+# this also tracks improvement after every epoch
+def evaluate_model(model, tokenizer, preprocess, k = 5) -> dict:
+
+    model.eval()
+
+    # encode all the images in the dataset folder with the current model
+    paths = sorted(image_dir.glob("*.jpg"))
+
+    if not paths:
+        return {"precision": 0, "mrr": 0, "map": 0, "ndcg": 0}
+    
+    vecs, filenames = [], []
+    with torch.no_grad():
+        for path in paths:
+            img = Image.open(path).convert("RGB")
+            tensor = preprocess(img).unsqueeze(0)
+            vec = model.encode_image(tensor)
+
+            vec = vec / vec.norm(dim = -1, keepdim = True)
+            vecs.append(vec.squeeze().numpy())
+
+            filenames.append(path.name)
+
+
+    vecs = np.stack(vecs)
+
+    # evaluate each query
+    all_p = []
+    all_rr = []
+    all_ap = []
+    all_ndcg = []
+
+    with torch.no_grad():
+        for item in golden_set:
+            tokens = tokenizer([item["query"]])
+            qvec = model.encode_text(tokens)
+            qvec = qvec / qvec.norm(dim = -1, keepdim=True)
+            qvec = qvec.squeeze().numpy()
+
+            scores = vecs @ qvec
+            top_idx = np.argsort(scores)[::-1][:k*2]
+            retrieved = [filenames[i] for i in top_idx]
+            expected = item["expected"]
+
+            # precision@k
+            p = sum(1 for f in retrieved[:k] if expected in f) / k
+            all_p.append(p)
+
+            # reciprocal rank
+            rr = 0.0
+            for rank, f in enumerate(retrieved, 1):
+                if expected in f:
+                    rr = 1.0 / rank
+                    break
+
+            all_rr.append(rr)
+
+            # average precision
+            hits = 0.0
+            sum_p = 0.0
+
+            for rank, f in enumerate(retrieved, 1):
+                if expected in f:
+                    hits += 1
+                    sum_p += hits / rank
+            
+            all_p.append(sum_p / hits if hits > 0 else 0.0)
+
+            # ndcg@k
+            dcg = sum(1 / np.log2(r + 1) for r, f in enumerate(retrieved[:k], 1) if expected in f)
+
+            nr = min(sum(1 for f in retrieved if expected in f), k)
+
+            idcg = sum(1/ np.log2(r+1) for r in range(1, nr+ 1)) if nr > 0 else 1.0
+
+            all_ndcg.append(dcg / idcg if idcg > 0 else 0.0)
+
+    return {
+        "precision": float(np.mean(all_p)),
+        "mrr": float(np.mean(all_rr)),
+        "map": float(np.mean(all_ap)),
+        "ndcg": float(np.mean(all_ndcg))
+    }
 
 
