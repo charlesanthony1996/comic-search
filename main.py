@@ -797,7 +797,7 @@ def _print_summary(r: dict):
 #     else:
 #         parser.print_help()
 
-extract_all()
+# extract_all()
 
 # build_index()
 
@@ -807,7 +807,7 @@ extract_all()
 # run_search("the punisher thinking about his family and feeling sad", top_k=5, show=True)
 # run_search("microchip working on computers or hacking", top_k=5, show=True)
 # run_search("punisher and daredevil fighting", top_k=5, show=True)
-run_search("punisher fighting with wilson fisk", top_k= 5, show=True)
+# run_search("punisher fighting with wilson fisk", top_k= 5, show=True)
 
 # using bm25 only
 # results = bm25_search("punisher fighting with wilson fisk", top_k=5)
@@ -825,11 +825,11 @@ run_search("punisher fighting with wilson fisk", top_k= 5, show=True)
 
 # evaluate()
 
-clip_results = evaluate_all(run_search, k = 5, mode="clip")
-bm25_results = evaluate_all(bm25_search, k = 5, mode="bm25")
-rrf_results = evaluate_all(rrf_search, k = 5, mode="rrf")
+# clip_results = evaluate_all(run_search, k = 5, mode="clip")
+# bm25_results = evaluate_all(bm25_search, k = 5, mode="bm25")
+# rrf_results = evaluate_all(rrf_search, k = 5, mode="rrf")
 
-compare(clip_results, rrf_results)
+# compare(clip_results, rrf_results)
 
 def plot_comparison(clip_r, bm25_r, rrf_f):
 
@@ -868,4 +868,13 @@ def plot_comparison(clip_r, bm25_r, rrf_f):
     plt.show()
 
 # generate plot to see the metrics comparison
+# plot_comparison(clip_results, bm25_results, rrf_results)
+
+# running clean metrics here
+extract_all()
+build_index()
+clip_results = evaluate_all(run_search, k = 5, mode="clip")
+bm25_results = evaluate_all(bm25_search, k = 5, mode="bm25")
+rrf_results = evaluate_all(rrf_search, k = 5, mode="rrf")
+compare(clip_results, rrf_results)
 plot_comparison(clip_results, bm25_results, rrf_results)
