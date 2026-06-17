@@ -237,8 +237,39 @@ def evaluate_model(model, tokenizer, preprocess, k = 5) -> dict:
         "ndcg": float(np.mean(all_ndcg))
     }
 
-
+# fine tuning function
+# training here
 def fine_tune():
+
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"device: {device}")
+
+    model, _, preprocess = open_clip.create_model_and_transforms(
+        "ViT-B-32", pretrained="openai"
+    )
+
+    tokenizer = open_clip.get_tokenizer("ViT-B-32")
+    model = model.to(device)
+
+    # dataset and dataloader
+    dataset = comicdataset(preprocess)
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=0,
+        pin_memory=(device == "cuda")
+    )
+
+    params_to_train = (
+        list(model.visual.transformer.resblocks[-2:].parameters()) +
+        list(model.visual.l)
+    )
+
+
+
+
+
     pass
 
 
@@ -247,7 +278,30 @@ def plot_training(history: list):
 
 
 def load_finetuned_clip():
-    pass
+
+    ckpt_path = ckpt_dir / "clip_fintetuned_best.pt"
+
+    if not ckpt_path.exists():
+        raise FileNotFoundError("no checkpoint found")
+    
+    model, _, preprocess = open_clip.create_model_and_transform(
+        "ViT-B-32", pretrained="openai"
+    )
+
+    tokenizer = open_clip.get_tokenizer("ViT-B-32")
+
+    checkpoint = torch.load(ckpt_path, map_location="cpu")
+
+    model.load_state_dict(checkpoint["model_state"])
+
+    model.eval()
+
+    print("")
+
+
+    return model, preprocess, tokenizer
+
+
 
 
 if __name__ == "__main__":
