@@ -9,10 +9,10 @@ import argparse
 
 
 # might not work in python3 3.12.2
-import fitz
+# import fitz
 # or should we import pymupdf
 
-import pypdf
+# import pypdf
 
 # openai clip model
 import open_clip

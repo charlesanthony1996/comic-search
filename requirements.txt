@@ -5,6 +5,10 @@ pytesseract
 # argparse
 # fitz
 # pypdf
-open_clip
+openai-clip
 matplotlib
 rank-bm25
+fitz
+PyMuPDF
+open_clip_torch
+pandas

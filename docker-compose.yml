@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  comic-search:
+    build: .
+    image: comic-search:latest
+    container_name: comic-search
+
+    # local folders
+    volumes:
+      - ./datasets:/app/datasets 
+      - ./dataset:/app/dataset   
+      - ./clip_index.npz:/app/clip_index.npz 
+      - ./dataset_text.json:/app/dataset_text.json  
+
+
+    stdin_open: true
+    tty: true
+
+    
+    command: python3 main.py
