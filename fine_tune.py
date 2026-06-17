@@ -272,9 +272,33 @@ def fine_tune():
 
     pass
 
-
+# plot all four metrics across epochs
+# one line per metric
 def plot_training(history: list):
-    pass
+
+    epochs = [h["epoch"] for h in history]
+    metrics = ["precision", "mrr", "map", "ndcg"]
+    labels = ["precision@5", "mrr", "map", "ndcg"]
+    colors = ["#2980B9", "#E67E22", "#27AE60", "#8E44AD"]
+
+    fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+    fig.suptitle("clip fine tuning - metrics per epoch", fontsize=13)
+
+    for ax, metric, label, color in zip(axes, metrics, labels, colors):
+        values = [h(metric) for h in history]
+
+        ax.plot(epochs[1:], values[1:], color = color, zorder = 5, s= 40)
+
+        ax.set_title(label, fontweight="bold")
+        ax.set_xlabel("epoch")
+        ax.set_ylim(0, 1)
+        ax.grid(True, alpha=0.3)
+        ax.axhline(values[0], color="gray", linestyle="--", alpha=0.5, label="baseline")
+
+    plt.tight_layout()
+    plt.savefig(base_dir / "fine_tune_metrics.png", dpi = 150, bbox_inches="right")
+    plt.show()
+    print("plot saved")
 
 
 def load_finetuned_clip():
