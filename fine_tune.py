@@ -263,8 +263,54 @@ def fine_tune():
 
     params_to_train = (
         list(model.visual.transformer.resblocks[-2:].parameters()) +
-        list(model.visual.l)
+        list(model.visual.ln_post.parameters()) +
+        list(model.visual.proj.parameters() if hasattr(model.visual, "proj") else []) +
+        list(model.transformer.resblocks[-2:].parameters()) +
+        list(model.ln_final.parameters()) +
+        [model.text_projection] if hasattr(model, "text_projection") else []
     )
+
+    # fallback
+    try:
+        optimizer = AdamW(params_to_train, lr=lr, weight_decay=0.01)
+        print("fine tuning last 2 blocks only")
+    except Exception:
+        optimizer = AdamW(model.parameters(), lr=lr, weight_decay=0.01)
+        print("fine tuning all parameters")
+
+
+    # cosine lr decay
+    scheduler = CosineAnnealingLR(optimizer, T_max=epochs)
+
+    # record metrics per epoch
+    history = []
+    best_mrr = 0.0
+
+    # baseline before training
+    baseline = evaluate_model(model, tokenizer, preprocess)
+
+    history.append({"epoch": 0, **baseline})
+
+    # training epochs
+    for epoch in range(1, epochs + 1):
+
+        model.train()
+        epoch_loss = 0.0
+        n_batches = 0
+
+        for batch_imgs, batch_captions in dataloader:
+            # move images to device
+            batch_imgs = batch_imgs.to(device)
+
+            # tokenize captions
+            tokens = tokenizer(list(batch_captions))
+            tokens = tokens.to(device)
+
+            # forward pass
+            
+
+
+
 
 
 
