@@ -238,3 +238,17 @@ def evaluate_model(model, tokenizer, preprocess, k = 5) -> dict:
     }
 
 
+def fine_tune():
+    pass
+
+
+def plot_training(history: list):
+    pass
+
+
+def load_finetuned_clip():
+    pass
+
+
+if __name__ == "__main__":
+    fine_tune()
