@@ -878,3 +878,13 @@ bm25_results = evaluate_all(bm25_search, k = 5, mode="bm25")
 rrf_results = evaluate_all(rrf_search, k = 5, mode="rrf")
 compare(clip_results, rrf_results)
 plot_comparison(clip_results, bm25_results, rrf_results)
+
+
+# fine tuning here
+from fine_tune import load_finetuned_clip
+model, preprocess, tokenizer = load_finetuned_clip()
+
+# need to rebuild the index here with fine tuned features
+build_index()
+
+# compare metrics
