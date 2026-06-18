@@ -307,16 +307,56 @@ def fine_tune():
             tokens = tokens.to(device)
 
             # forward pass
-            
+            image_features = model.encode_image(batch_imgs)
+            text_features = model.encode_text(tokens)
+
+            # l2 normalize
+            image_features = image_features / image_features.norm(dim = -1, keepdim=True)
+            text_features = text_features / text_features.norm(dim = -1, keepdim=True)
+
+            # contrastive loss
+            loss = contrastive_loss(
+                image_features,
+                text_features,
+                model.logit_scale.exp()
+            )
+
+            # backward pass
+            optimizer.zero_grad()
+            loss.backward()
+
+            # gradient clipping
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm = 1.0)
+
+            optimizer.step()
+
+            epoch_loss += loss.item()
+            n_batches += 1
+
+        scheduler.step()
+
+        avg_loss = epoch_loss / max(n_batches, 1)
+
+        
 
 
 
 
 
 
+    # save metrics
+    with open(ckpt_dir / "metrics_per_epoch.json", "w") as f:
+        json.dump(history, f, indent = 2)
+
+    # plot metrics per epoch
+    plot_training(history)
+    print(f"best mrr: {best_mrr:.4f}")
+    print(f"checkpoint: {ckpt_dir / 'clip_finetuned_best.pt'}")
 
 
-    pass
+
+
+
 
 # plot all four metrics across epochs
 # one line per metric
