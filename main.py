@@ -888,3 +888,7 @@ model, preprocess, tokenizer = load_finetuned_clip()
 build_index()
 
 # compare metrics
+clip_ft_results = evaluate_all(run_search, k = 5, mode="clip-finetuned")
+compare(clip_results, clip_ft_results)
+
+

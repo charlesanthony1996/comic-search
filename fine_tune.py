@@ -337,6 +337,24 @@ def fine_tune():
 
         avg_loss = epoch_loss / max(n_batches, 1)
 
+        # evaluate after each epoch
+        metrics = evaluate_model(model, tokenizer, preprocess)
+        history.append({"epoch": epoch, **metrics})
+
+        print(f"epoch {epoch:02d}/epochs loss={avg_loss:.4f}")
+        print()
+
+        # save best checkpoint
+        if metrics["mrr"] > best_mrr:
+            best_mrr = metrics["mrr"]
+            torch.save({
+                "epoch": epoch,
+                "model_state": model.state_dict(),
+                "metrics": metrics,
+                "loss": avg_loss
+            }, ckpt_dir / "clip_finetuned_best.pt")
+            print(f"new best model saved (mrr={best_mrr:.4f})")
+
         
 
 
