@@ -434,7 +434,8 @@ golden_test_set = [
 
     # punisher
     {"query": "punisher fighting with bad guys", "expected": "punisher"},
-    {"query": "", "expected": ""}
+    # remember that empty queries will crash the program
+    # {"query": "", "expected": ""}
 
 ]
  

@@ -424,7 +424,7 @@ def load_finetuned_clip():
 
     model.eval()
 
-    print("")
+    print(f"loaded fine tuned model from epoch {checkpoint['epoch']} (MRR={checkpoint['metrics']['mrr']:.4f})")
 
 
     return model, preprocess, tokenizer
