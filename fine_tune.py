@@ -61,12 +61,12 @@ def build_caption(filename: str, ocr_text: str) -> str:
     else:
         char = "marvel superhero"
 
-    return "comic book page action scene"
+    return f"{char} comic book page action scene"
 
 
 # pairs each comic page with its ocr caption
 # this has 3 functions
-def comicdataset(Dataset):
+class comicdataset(Dataset):
 
     def __init__(self, preprocess):
         self.preprocess = preprocess
@@ -219,7 +219,7 @@ def evaluate_model(model, tokenizer, preprocess, k = 5) -> dict:
                     hits += 1
                     sum_p += hits / rank
             
-            all_p.append(sum_p / hits if hits > 0 else 0.0)
+            all_ap.append(sum_p / hits if hits > 0 else 0.0)
 
             # ndcg@k
             dcg = sum(1 / np.log2(r + 1) for r, f in enumerate(retrieved[:k], 1) if expected in f)
@@ -389,9 +389,9 @@ def plot_training(history: list):
     fig.suptitle("clip fine tuning - metrics per epoch", fontsize=13)
 
     for ax, metric, label, color in zip(axes, metrics, labels, colors):
-        values = [h(metric) for h in history]
+        values = [h[metric] for h in history]
 
-        ax.plot(epochs[1:], values[1:], color = color, zorder = 5, s= 40)
+        ax.plot(epochs, values, color = color, linewidth=2, marker='o', markersize=5)
 
         ax.set_title(label, fontweight="bold")
         ax.set_xlabel("epoch")
@@ -400,7 +400,7 @@ def plot_training(history: list):
         ax.axhline(values[0], color="gray", linestyle="--", alpha=0.5, label="baseline")
 
     plt.tight_layout()
-    plt.savefig(base_dir / "fine_tune_metrics.png", dpi = 150, bbox_inches="right")
+    plt.savefig(base_dir / "fine_tune_metrics.png", dpi = 150, bbox_inches="tight")
     plt.show()
     print("plot saved")
 
@@ -412,7 +412,7 @@ def load_finetuned_clip():
     if not ckpt_path.exists():
         raise FileNotFoundError("no checkpoint found")
     
-    model, _, preprocess = open_clip.create_model_and_transform(
+    model, _, preprocess = open_clip.create_model_and_transforms(
         "ViT-B-32", pretrained="openai"
     )
 
