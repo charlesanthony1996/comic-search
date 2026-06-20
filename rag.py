@@ -45,7 +45,7 @@ def get_client():
     Initialise Anthropic client.
     Reads API key from ANTHROPIC_API_KEY environment variable.
     """
-    api_key = os.getenv("os.environ["ANTHROPIC_API_KEY"]")
+    api_key = os.getenv("ANTTHROPIC_KEY")
     if not api_key:
         raise ValueError(
             "ANTHROPIC_API_KEY not set.\n"
