@@ -249,7 +249,7 @@ def load_clip():
 
 
 
-def build_index():
+def build_index(model=None, preprocess = None):
 
     # collect all the images from the dataset directory. the ones that were already split per pdf
     # should we split per panel? not sure. explorable
@@ -264,7 +264,8 @@ def build_index():
 
     # load the clip model
     # load_clip is the function we wrote earlier
-    model, preprocess, _ = load_clip()
+    if model is None:
+        model, preprocess, _ = load_clip()
 
     # encode the paths
     # print(f"encoding {len(paths)} images... here")
@@ -883,10 +884,10 @@ plot_comparison(clip_results, bm25_results, rrf_results)
 
 # fine tuning here
 from fine_tune import load_finetuned_clip
-model, preprocess, tokenizer = load_finetuned_clip()
+ft_model, ft_preprocess, ft_tokenizer = load_finetuned_clip()
 
 # need to rebuild the index here with fine tuned features
-build_index()
+build_index(model=ft_model, preprocess=ft_preprocess)
 
 # compare metrics
 clip_ft_results = evaluate_all(run_search, k = 5, mode="clip-finetuned")

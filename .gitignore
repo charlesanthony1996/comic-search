@@ -14,3 +14,14 @@ clip_index.npz
 datasets.zip
 .datasets.zip
 /datasets.zip
+
+.env
+*.env
+
+./__pycache__
+__pycache__
+.__pycache__
+
+checkpoints
+.checkpoints
+/checkpoints

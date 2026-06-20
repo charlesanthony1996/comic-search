@@ -264,7 +264,8 @@ def fine_tune():
     params_to_train = (
         list(model.visual.transformer.resblocks[-2:].parameters()) +
         list(model.visual.ln_post.parameters()) +
-        list(model.visual.proj.parameters() if hasattr(model.visual, "proj") else []) +
+        # list(model.visual.proj.parameters() if hasattr(model.visual, "proj") else []) +
+        ([model.visual.proj] if hasattr(model.visual, "proj") else []) +
         list(model.transformer.resblocks[-2:].parameters()) +
         list(model.ln_final.parameters()) +
         [model.text_projection] if hasattr(model, "text_projection") else []
@@ -407,7 +408,7 @@ def plot_training(history: list):
 
 def load_finetuned_clip():
 
-    ckpt_path = ckpt_dir / "clip_fintetuned_best.pt"
+    ckpt_path = ckpt_dir / "clip_finetuned_best.pt"
 
     if not ckpt_path.exists():
         raise FileNotFoundError("no checkpoint found")
