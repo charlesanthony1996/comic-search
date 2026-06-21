@@ -45,4 +45,8 @@ print("demo 4 comparison")
 clip_results = evaluate_all(run_search, k = 5, mode="clip")
 bm25_results = evaluate_all(bm25_search, k = 5, mode="bm25")
 rrf_results = evaluate_all(rrf_search, k = 5, mode="rrf")
+compare(clip_results, rrf_results)
+plot_comparison(clip_results, bm25_results, rrf_results)
 
+print("demo 5 rag:- question answering from metrics")
+rag_pipeline("what does the punisher say when confronting wilson fisk?" ,top_k =5)

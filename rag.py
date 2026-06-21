@@ -1,65 +1,34 @@
-"""
-rag.py — Retrieval Augmented Generation for Comic Search
-=========================================================
-Combines RRF retrieval with Claude (Anthropic API) to answer
-natural language questions about your comic dataset.
-
-Instead of just returning page images, RAG generates a full
-natural language answer grounded in the actual comic dialogue.
-
-Setup:
-    pip install anthropic
-
-    export ANTHROPIC_API_KEY=your_key_here
-
-Usage:
-    from rag import rag_answer, rag_pipeline
-
-    # simple answer
-    answer = rag_answer("Does Punisher kill Wilson Fisk?")
-    print(answer)
-
-    # full pipeline with retrieved pages + answer
-    result = rag_pipeline("What happens when Daredevil fights the Kingpin?")
-    print(result["answer"])
-    print(result["sources"])
-"""
-
-import json
 import os
+import json
 import anthropic
 import numpy as np
 
 from pathlib import Path
 
-# ── Paths (must match main.py) ─────────────────────────────────────────────────
+# paths that are the same as main.py
 base_dir    = Path(__file__).parent
 image_dir   = base_dir / "dataset"
 corpus_path = base_dir / "dataset_text.json"
 index_file  = base_dir / "clip_index.npz"
 
 
-# ── Anthropic client ───────────────────────────────────────────────────────────
+# anthropic client
 def get_client():
-    """
-    Initialise Anthropic client.
-    Reads API key from ANTHROPIC_API_KEY environment variable.
-    """
-    api_key = os.getenv("ANTTHROPIC_KEY")
+
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+
     if not api_key:
         raise ValueError(
             "ANTHROPIC_API_KEY not set.\n"
             "Run: export ANTHROPIC_API_KEY=your_key_here"
         )
+    
     return anthropic.Anthropic(api_key=api_key)
 
 
-# ── Step 1: Retrieve — reuse your existing RRF search ─────────────────────────
+# retrieve -> reuse your existing RRF search
 def retrieve(query: str, top_k: int = 5) -> list[str]:
-    """
-    Retrieve top_k most relevant page filenames using RRF fusion.
-    Imports search functions from main.py to avoid code duplication.
-    """
+
     # import here to avoid circular imports
     from main import run_search, bm25_search
 
@@ -68,7 +37,7 @@ def retrieve(query: str, top_k: int = 5) -> list[str]:
     bm25_raw      = bm25_search(query, top_k=100)
     bm25_results  = [fname for _, fname in bm25_raw]
 
-    # RRF fusion
+    # rrf fusion
     k = 60
     rrf_scores = {}
     for rank, fname in enumerate(clip_results, 1):
@@ -80,15 +49,9 @@ def retrieve(query: str, top_k: int = 5) -> list[str]:
     return [fname for fname, _ in ranked[:top_k]]
 
 
-# ── Step 2: Augment — extract OCR text from retrieved pages ────────────────────
+# augment —> extract ocr text from retrieved pages
 def get_context(filenames: list[str]) -> list[dict]:
-    """
-    Load OCR text for each retrieved page from dataset_text.json.
-    Returns list of {filename, character, text} dicts.
 
-    Pages with no OCR text are included with a note — the LLM
-    is told the page exists but has no readable text.
-    """
     if not corpus_path.exists():
         raise FileNotFoundError(
             "dataset_text.json not found — run build_text_corpus() first"
@@ -115,17 +78,9 @@ def get_context(filenames: list[str]) -> list[dict]:
     return context_pages
 
 
-# ── Step 3: Generate — send context + query to Claude ─────────────────────────
+# generate — send the context + query to claude
 def generate_answer(query: str, context_pages: list[dict],
                     model: str = "claude-sonnet-4-6") -> str:
-    """
-    Send retrieved page context + query to Claude and get a grounded answer.
-
-    The system prompt instructs Claude to:
-    - Only answer based on the provided comic context
-    - Cite which pages the information comes from
-    - Admit uncertainty if the answer isn't in the retrieved pages
-    """
     client = get_client()
 
     # build context string from retrieved pages
@@ -134,17 +89,17 @@ def generate_answer(query: str, context_pages: list[dict],
         context_str += f"\n--- Page {i}: {page['filename']} ({page['character']}) ---\n"
         context_str += page["text"] + "\n"
 
-    # system prompt — instructs the LLM how to behave
+    # system prompt — instructs the llm how to behave
     system_prompt = """You are a Marvel Comics expert assistant with access to 
-specific comic book pages. Your job is to answer questions about the comics 
-using ONLY the dialogue, captions, and text found in the provided pages.
+    specific comic book pages. Your job is to answer questions about the comics 
+    using ONLY the dialogue, captions, and text found in the provided pages.
 
-Rules:
-- Base your answer ONLY on the provided page text
-- Cite which pages your information comes from (e.g. "According to page 2...")
-- If the answer cannot be found in the provided pages, say so clearly
-- Keep answers concise and focused on what the comics actually show
-- Note that OCR text from comic pages may contain errors or missing words"""
+    Rules:
+    - Base your answer ONLY on the provided page text
+    - Cite which pages your information comes from (e.g. "According to page 2...")
+    - If the answer cannot be found in the provided pages, say so clearly
+    - Keep answers concise and focused on what the comics actually show
+    - Note that OCR text from comic pages may contain errors or missing words"""
 
     # user message — query + retrieved context
     user_message = f"""Question: {query}
@@ -154,7 +109,7 @@ Here are the most relevant comic pages I found:
 
 Please answer the question based on what these pages show."""
 
-    # call Claude API
+    # call claude api
     response = client.messages.create(
         model=model,
         max_tokens=1024,
@@ -167,19 +122,9 @@ Please answer the question based on what these pages show."""
     return response.content[0].text
 
 
-# ── Full RAG pipeline ──────────────────────────────────────────────────────────
+# full rag pipeline
 def rag_pipeline(query: str, top_k: int = 5) -> dict:
-    """
-    Full RAG pipeline: retrieve → augment → generate.
 
-    Returns:
-        {
-            "query":    original question,
-            "sources":  list of retrieved page filenames,
-            "context":  extracted OCR text per page,
-            "answer":   Claude's generated answer
-        }
-    """
     print(f'\nRAG Query: "{query}"')
     print("─" * 55)
 
@@ -217,29 +162,10 @@ def rag_answer(query: str, top_k: int = 5) -> str:
     return result["answer"]
 
 
-# ── RAG evaluation ─────────────────────────────────────────────────────────────
-# Unlike retrieval evaluation (precision/MRR/NDCG),
-# RAG evaluation checks answer quality.
-# Options:
-#   1. Manual — read the answers and judge yourself (simplest)
-#   2. Automated — use another LLM to score the answer (LLM-as-judge)
 
 def evaluate_rag(queries_with_expected: list[dict]) -> None:
-    """
-    Run a set of RAG queries and print answers for manual evaluation.
 
-    Args:
-        queries_with_expected: list of {query, expected_keywords} dicts
-            expected_keywords: list of words the answer should contain
 
-    Example:
-        evaluate_rag([
-            {
-                "query": "What does Punisher say before attacking?",
-                "expected_keywords": ["punisher", "castle", "kill", "war"]
-            }
-        ])
-    """
     print("\n" + "=" * 65)
     print("RAG EVALUATION")
     print("=" * 65)
@@ -264,7 +190,7 @@ def evaluate_rag(queries_with_expected: list[dict]) -> None:
     print("Note: Also read answers manually — keyword matching is a weak proxy")
 
 
-# ── Demo queries ───────────────────────────────────────────────────────────────
+# demo queries
 RAG_DEMO_QUERIES = [
     "What does the Punisher say when confronting criminals?",
     "How does Daredevil describe his relationship with the law?",
@@ -274,7 +200,7 @@ RAG_DEMO_QUERIES = [
 ]
 
 
-# ── Entry point ────────────────────────────────────────────────────────────────
+# entry point
 if __name__ == "__main__":
 
     # run a single demo query
