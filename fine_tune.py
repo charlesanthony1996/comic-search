@@ -32,6 +32,9 @@ min_chars = 20
 # build a caption for a comic page
 def build_caption(filename: str, ocr_text: str) -> str:
 
+    # remember min chars is 20.
+    # if this is bigger than 20 it will just return the ocr text?
+    # a very concrete metric. does it need to be coarse?
     if len(ocr_text.strip()) >= min_chars:
 
         return ocr_text.strip()[:300]
@@ -64,7 +67,7 @@ def build_caption(filename: str, ocr_text: str) -> str:
     return f"{char} comic book page action scene"
 
 # testing build caption func
-print(build_caption("peter parker! do your friends know you're spiderman? hahah! (evil laugh)", ""))
+# print(build_caption("peter parker! the amazing spiderman strikes again!", "you spider menace"))
 
 
 
