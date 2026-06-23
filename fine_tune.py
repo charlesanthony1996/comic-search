@@ -63,6 +63,10 @@ def build_caption(filename: str, ocr_text: str) -> str:
 
     return f"{char} comic book page action scene"
 
+# testing build caption func
+print(build_caption("peter parker! do your friends know you're spiderman? hahah! (evil laugh)", ""))
+
+
 
 # pairs each comic page with its ocr caption
 # this has 3 functions
@@ -433,5 +437,5 @@ def load_finetuned_clip():
 
 
 
-if __name__ == "__main__":
-    fine_tune()
+# if __name__ == "__main__":
+#     fine_tune()

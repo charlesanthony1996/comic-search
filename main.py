@@ -872,25 +872,29 @@ def plot_comparison(clip_r, bm25_r, rrf_f):
 # generate plot to see the metrics comparison
 # plot_comparison(clip_results, bm25_results, rrf_results)
 
+
+
+# ===================================
+
 # running clean metrics here
-extract_all()
-build_index()
-clip_results = evaluate_all(run_search, k = 5, mode="clip")
-bm25_results = evaluate_all(bm25_search, k = 5, mode="bm25")
-rrf_results = evaluate_all(rrf_search, k = 5, mode="rrf")
-compare(clip_results, rrf_results)
-plot_comparison(clip_results, bm25_results, rrf_results)
+# extract_all()
+# build_index()
+# clip_results = evaluate_all(run_search, k = 5, mode="clip")
+# bm25_results = evaluate_all(bm25_search, k = 5, mode="bm25")
+# rrf_results = evaluate_all(rrf_search, k = 5, mode="rrf")
+# compare(clip_results, rrf_results)
+# plot_comparison(clip_results, bm25_results, rrf_results)
 
 
-# fine tuning here
-from fine_tune import load_finetuned_clip
-ft_model, ft_preprocess, ft_tokenizer = load_finetuned_clip()
+# # fine tuning here
+# from fine_tune import load_finetuned_clip
+# ft_model, ft_preprocess, ft_tokenizer = load_finetuned_clip()
 
-# need to rebuild the index here with fine tuned features
-build_index(model=ft_model, preprocess=ft_preprocess)
+# # need to rebuild the index here with fine tuned features
+# build_index(model=ft_model, preprocess=ft_preprocess)
 
-# compare metrics
-clip_ft_results = evaluate_all(run_search, k = 5, mode="clip-finetuned")
-compare(clip_results, clip_ft_results)
+# # compare metrics
+# clip_ft_results = evaluate_all(run_search, k = 5, mode="clip-finetuned")
+# compare(clip_results, clip_ft_results)
 
 
