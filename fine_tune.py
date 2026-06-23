@@ -126,6 +126,22 @@ def contrastive_loss(image_features: torch.Tensor, text_features: torch.Tensor, 
 
     return (loss_i2t + loss_t2i) / 2
 
+# contrastive loss testing
+# batch_size1 = 4
+# embedding_dim1 = 8
+
+# image_features = torch.randn(batch_size1, embedding_dim1)
+# text_features = torch.randn(batch_size1, embedding_dim1)
+
+# # normalize like in the training loop
+# image_features = image_features / image_features.norm(dim = -1, keepdim=True)
+# text_features = text_features / text_features.norm(dim = -1, keepdim=True)
+
+# logit_scale = torch.tensor(100.0)
+
+# loss = contrastive_loss(image_features, text_features, logit_scale)
+# print(loss)
+
 
 # same golden set imported from main.py
 golden_set = [
