@@ -114,12 +114,12 @@ def infer_charachter(filepath):
 # dataset 3 name -> Web of Venom 001 (2026) (Digital) (Shan-Empire).pdf
 
 # log the infer charachter function
-infer_charachter("The Amazing Spider-Man v03 (Pocket Book) (1979) (Edit Special) c2c.pdf")
+# infer_charachter("The Amazing Spider-Man v03 (Pocket Book) (1979) (Edit Special) c2c.pdf")
 # spiderman should print out here
 # do we need pytest stuff here? maybe.. idk
-print(infer_charachter("The Amazing Spider-Man v03 (Pocket Book) (1979) (Edit Special) c2c.pdf"))
-print(infer_charachter("Ultimate Wolverine 016 (2026) (Digital) (Shan-Empire).pdf"))
-print(infer_charachter("Web of Venom 001 (2026) (Digital) (Shan-Empire).pdf"))
+# print(infer_charachter("The Amazing Spider-Man v03 (Pocket Book) (1979) (Edit Special) c2c.pdf"))
+# print(infer_charachter("Ultimate Wolverine 016 (2026) (Digital) (Shan-Empire).pdf"))
+# print(infer_charachter("Web of Venom 001 (2026) (Digital) (Shan-Empire).pdf"))
 
 
 # extract the downloadable format from getcomics.org
